@@ -6,7 +6,6 @@
 #include <sys/ioctl.h>
 #include <sys/mman.h>
 #include <linux/fb.h>
-//#include <cstring> //0-255 gives black-white
 
 int file_descriptor = -1;
 struct fb_fix_screeninfo fix_info;
@@ -25,7 +24,6 @@ int main(int argc, char **argv)
     int G_val = limit255(atoi(argv[2]));
     int B_val = limit255(atoi(argv[3]));
 
-    printf("Hello World\n");
     file_descriptor = open("/dev/fb0",O_RDWR);
     if(file_descriptor >= 0){
         printf("ok\n");
@@ -42,25 +40,44 @@ int main(int argc, char **argv)
         printf("OFFSET %iR %iG %iB\n",r_offset, g_offset, b_offset);
 
         int fb_data_size = fb_width * fb_height * fb_bpp / 8;
-
-        uint32_t* fbdata = (uint32_t*)mmap(0, fb_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_descriptor, 0);
         
-        //memset(fbdata, 255, fb_data_size); //0-255 gives black-white
-
-        //put RGB values here
-        uint32_t color_bitfield = 
+        if(fb_bpp == 16)
+        {
+            uint16_t* fbdata = (uint16_t*)mmap(0, fb_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_descriptor, 0);
+            
+            uint16_t color_bitfield = 
             (R_val << r_offset) | 
             (G_val << g_offset) | 
             (B_val << b_offset);
+            
+            while(1){
+                for(size_t pixel = 0; pixel < fb_width * fb_height; pixel++)
+                {
+                    fbdata[pixel] = color_bitfield;
+                }
+                sleep(5);
+            } //run foreva
+        }
+        else {
+            uint32_t* fbdata = (uint32_t*)mmap(0, fb_data_size, PROT_READ | PROT_WRITE, MAP_SHARED, file_descriptor, 0);
+            
+            uint32_t color_bitfield = 
+            (R_val << r_offset) | 
+            (G_val << g_offset) | 
+            (B_val << b_offset);
+
+            while(1){
+                for(size_t pixel = 0; pixel < fb_width * fb_height; pixel++)
+                {
+                    fbdata[pixel] = color_bitfield;
+                }
+                sleep(5);
+            } //run foreva
+        }
         
-        while(1){
-            for(size_t pixel = 0; pixel < fb_width * fb_height; pixel++)
-            {
-                fbdata[pixel] = color_bitfield;
-            }
-            sleep(5);
-        } //run foreva
-        
-    }   
+    }
+    else {
+        printf("Couldn't open /dev/fb0");  
+    }
     return 0;
 }
