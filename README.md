@@ -1,9 +1,14 @@
-run make
+## Installation 
+run `make`
 
+## Usage
 put rgb values like so
-./rgb-display 255 255 255 
+
+`./rgb-display 255 255 255` 
 
 ctrl+c to exit
+
 clear to reset
 
-enjoy your beautiful color
+<br>
+enjoy your beautiful color :)
